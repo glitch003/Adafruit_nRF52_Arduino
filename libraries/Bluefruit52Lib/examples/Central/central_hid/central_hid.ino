@@ -97,7 +97,7 @@ void connect_callback(uint16_t conn_handle)
     Serial.println("Found it");
 
     // HID device mostly require pairing/bonding
-    if ( !Bluefruit.Gap.requestPairing(conn_handle) )
+    if ( !Bluefruit.requestPairing(conn_handle) )
     {
       Serial.print("Failed to paired");
       return;
@@ -111,9 +111,9 @@ void connect_callback(uint16_t conn_handle)
     Serial.print("Country code: "); Serial.println(hidInfo[2]);
     Serial.printf("HID Flags  : 0x%02X\n", hidInfo[3]);
 
-    // BLEClientHidAdafruit currently only suports Boot Protocol Mode
+    // BLEClientHidAdafruit currently only supports Boot Protocol Mode
     // for Keyboard and Mouse. Let's set the protocol mode on prph to Boot Mode
-    hid.setProtocolMode(HID_PROTOCOL_MODE_BOOT);
+    hid.setBootMode(true);
 
     // Enable Keyboard report notification if present on prph
     if ( hid.keyboardPresent() ) hid.enableKeyboard();
@@ -126,8 +126,8 @@ void connect_callback(uint16_t conn_handle)
   {
     Serial.println("Found NONE");
     
-    // disconect since we couldn't find bleuart service
-    Bluefruit.Central.disconnect(conn_handle);
+    // disconnect since we couldn't find bleuart service
+    Bluefruit.disconnect(conn_handle);
   }  
 }
 
@@ -206,7 +206,7 @@ void processKeyboardReport(hid_keyboard_report_t* report)
       
       if ( kc < 128 )
       {
-        ch = shifted ? HID_KEYCODE_TO_ASCII[kc].shifted : HID_KEYCODE_TO_ASCII[kc].ascii;
+        ch = shifted ? hid_keycode_to_ascii[kc][1] : hid_keycode_to_ascii[kc][0];
       }else
       {
         // non-US keyboard !!??

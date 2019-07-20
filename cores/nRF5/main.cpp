@@ -37,9 +37,7 @@ static TaskHandle_t  _loopHandle;
 void initVariant() __attribute__((weak));
 void initVariant() { }
 
-uint32_t _loopStacksize = 512*3;
-
-uint32_t setLoopStacksize(void) __attribute__ ((weak));
+#define LOOP_STACK_SZ   (512*3)
 
 static void loop_task(void* arg)
 {
@@ -58,35 +56,29 @@ static void loop_task(void* arg)
   while (1)
   {
     loop();
-
-#ifdef NRF52840_XXAA
-    tud_cdc_write_flush();
-#endif
+    yield(); // yield run usb background task
 
     // Serial events
     if (serialEvent && serialEventRun) serialEventRun();
   }
 }
 
-/*
- * \brief Main entry point of Arduino application
- */
+// \brief Main entry point of Arduino application
 int main( void )
 {
   init();
   initVariant();
 
-  if (setLoopStacksize)
-  {
-    _loopStacksize = setLoopStacksize();
-  }
+#ifdef USE_TINYUSB
+  Adafruit_TinyUSB_Core_init();
+#endif
 
 #if CFG_DEBUG >= 3
   SEGGER_SYSVIEW_Conf();
 #endif
 
   // Create a task for loop()
-  xTaskCreate( loop_task, "loop", _loopStacksize, NULL, TASK_PRIO_LOW, &_loopHandle);
+  xTaskCreate( loop_task, "loop", LOOP_STACK_SZ, NULL, TASK_PRIO_LOW, &_loopHandle);
 
   // Initialize callback task
   ada_callback_init();
@@ -114,8 +106,9 @@ int _write (int fd, const void *buf, size_t count)
 
   if ( Serial )
   {
-    Serial.write( (const uint8_t *) buf, count);
+    return Serial.write( (const uint8_t *) buf, count);
   }
+  return 0;
 }
 
 }

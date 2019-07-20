@@ -44,11 +44,10 @@ void setup(void)
   Bluefruit.autoConnLed(true);
 
   Bluefruit.begin();
-  // Set max power. Accepted values are: -40, -30, -20, -16, -12, -8, -4, 0, 4
-  Bluefruit.setTxPower(4);
+  Bluefruit.setTxPower(4);    // Check bluefruit.h for supported values
   Bluefruit.setName("Bluefruit52");
-  Bluefruit.setConnectCallback(connect_callback);
-  Bluefruit.setDisconnectCallback(disconnect_callback);
+  Bluefruit.Periph.setConnectCallback(connect_callback);
+  Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
 
   // Configure and Start Device Information Service
   bledis.setManufacturer("Adafruit Industries");
@@ -131,9 +130,9 @@ void loop(void)
     Serial.println(" bytes ...");
 
     start = millis();
-    while (remaining > 0)
+    while ( (remaining > 0) && Bluefruit.connected() && bleuart.notifyEnabled() )
     {
-      bleuart.print(TEST_STRING);
+      if ( !bleuart.print(TEST_STRING) ) break;
 
       sent      += TEST_STRLEN;
       remaining -= TEST_STRLEN;

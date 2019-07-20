@@ -39,9 +39,9 @@
 BLEClientHidAdafruit::BLEClientHidAdafruit(void)
  : BLEClientService(UUID16_SVC_HUMAN_INTERFACE_DEVICE),
    _protcol_mode(UUID16_CHR_PROTOCOL_MODE),
+   _hid_info(UUID16_CHR_HID_INFORMATION), _hid_control(UUID16_CHR_HID_CONTROL_POINT),
    _kbd_boot_input(UUID16_CHR_BOOT_KEYBOARD_INPUT_REPORT), _kbd_boot_output(UUID16_CHR_BOOT_KEYBOARD_OUTPUT_REPORT),
-   _mse_boot_input(UUID16_CHR_BOOT_MOUSE_INPUT_REPORT),
-   _hid_info(UUID16_CHR_HID_INFORMATION), _hid_control(UUID16_CHR_HID_CONTROL_POINT)
+   _mse_boot_input(UUID16_CHR_BOOT_MOUSE_INPUT_REPORT)
 {
   _kbd_cb = NULL;
   _mse_cb = NULL;
@@ -81,6 +81,8 @@ bool BLEClientHidAdafruit::begin(void)
   // set notify callback
   _kbd_boot_input.setNotifyCallback(kbd_client_notify_cb);
   _mse_boot_input.setNotifyCallback(mse_client_notify_cb);
+
+  return true;
 }
 
 void BLEClientHidAdafruit::setKeyboardReportCallback(kbd_callback_t fp)
@@ -125,9 +127,10 @@ uint8_t BLEClientHidAdafruit::getCountryCode(void)
   return info[2];
 }
 
-bool BLEClientHidAdafruit::setProtocolMode(uint8_t mode)
+bool BLEClientHidAdafruit::setBootMode(bool boot)
 {
-  return _protcol_mode.write8(mode);
+  // 0 is boot, 1 is protocol
+  return _protcol_mode.write8(1-boot);
 }
 
 /*------------------------------------------------------------------*/
@@ -140,12 +143,12 @@ bool BLEClientHidAdafruit::keyboardPresent(void)
 
 bool BLEClientHidAdafruit::enableKeyboard(void)
 {
-  _kbd_boot_input.enableNotify();
+  return _kbd_boot_input.enableNotify();
 }
 
 bool BLEClientHidAdafruit::disableKeyboard(void)
 {
-  _kbd_boot_input.disableNotify();
+  return _kbd_boot_input.disableNotify();
 }
 
 void BLEClientHidAdafruit::_handle_kbd_input(uint8_t* data, uint16_t len)
@@ -171,12 +174,12 @@ bool BLEClientHidAdafruit::mousePresent(void)
 
 bool BLEClientHidAdafruit::enableMouse(void)
 {
-  _mse_boot_input.enableNotify();
+  return _mse_boot_input.enableNotify();
 }
 
 bool BLEClientHidAdafruit::disableMouse(void)
 {
-  _mse_boot_input.disableNotify();
+  return _mse_boot_input.disableNotify();
 }
 
 void BLEClientHidAdafruit::_handle_mse_input(uint8_t* data, uint16_t len)

@@ -36,7 +36,6 @@ void setup( void ) ;
 void loop( void ) ;
 
 void suspendLoop(void);
-uint32_t setLoopStacksize(void);
 
 #include "WVariant.h"
 
@@ -51,7 +50,7 @@ uint32_t setLoopStacksize(void);
 #ifdef __cplusplus
   #include "WCharacter.h"
   #include "WString.h"
-  // #include "Tone.h"
+  #include "Tone.h"
   #include "WMath.h"
   #include "HardwareSerial.h"
   #include "pulse.h"
@@ -68,13 +67,8 @@ uint32_t setLoopStacksize(void);
 #include "utility/utilities.h"
 #include "utility/AdaCallback.h"
 
-#ifdef NRF52840_XXAA
-  #include "tusb.h"
-
-#ifdef __cplusplus
-  #include "USBSerial.h"
-#endif
-
+#ifdef USE_TINYUSB
+  #include "Adafruit_TinyUSB_Core.h"
 #endif
 
 // Include board variant
@@ -125,8 +119,6 @@ uint32_t setLoopStacksize(void);
 #define portInputRegister(port)    ( (volatile uint32_t*) &(port->IN) )
 #define portModeRegister(port)     ( &(port->DIR) )
 #define digitalPinHasPWM(P)        ( g_ADigitalPinMap[P] > 1 )
-
-void rtos_idle_callback(void) ATTR_WEAK;
 /*
  * digitalPinToTimer(..) is AVR-specific and is not defined for nRF52
  * architecture. If you need to check if a pin supports PWM you must

@@ -13,13 +13,16 @@
 //#include <pstorage.h>
 //#include <app_scheduler.h>
 #include <nrf_soc.h>
-#include "nffs/nffs.h"
+#include <Adafruit_LittleFS.h>
+#include <InternalFileSystem.h>
 #include "utility/debug.h"
 
 #include "rtos.h"
 #include "utility/AdaCallback.h"
 
 #include "crypto.h"
+
+using namespace Adafruit_LittleFS_Namespace;
 
 #define CRYPTO_INSTANCE  2   // Change this to force key regeneration on next run
 
@@ -107,7 +110,13 @@ static uint8_t crypto_loadKeys(void)
   crypto_persistent_keys_t keys = {};
 
   uint32_t keylen = sizeof(keys);
-  fsutil_read_file(CRYPTO_KEYFILE, 0, keylen, &keys, &keylen);
+
+  File file(CRYPTO_KEYFILE, FILE_O_READ, InternalFS);
+  VERIFY(file, 0);
+
+  keylen = file.read(&keys, keylen);
+
+  file.close();
 
   if (keys.valid0 == 0x55 && keys.valid1 == 0xAA && keys.instance == CRYPTO_INSTANCE)
   {
@@ -130,7 +139,7 @@ static uint8_t crypto_loadKeys(void)
 void crypto_scheduleStoreKeys(void)
 {
 //    crypto_storing = 1;
-  ada_callback(NULL, crypto_storeKeys);
+  ada_callback(NULL, 0, crypto_storeKeys);
 }
 
 void crypto_storeKeys(void)
@@ -156,7 +165,12 @@ void crypto_storeKeys(void)
     keys.valid0 = 0x55;
     keys.valid1 = 0xAA;
 
-    fsutil_write_file(CRYPTO_KEYFILE, &keys, sizeof(keys));
+    File file(CRYPTO_KEYFILE, FILE_O_WRITE, InternalFS);
+    VERIFY(file,);
+
+    file.write(&keys, sizeof(keys));
+
+    file.close();
 
 //    err_code = pstorage_update(&handle, (uint8_t*)&keys, sizeof(keys), 0);
 //    APP_ERROR_CHECK(err_code);

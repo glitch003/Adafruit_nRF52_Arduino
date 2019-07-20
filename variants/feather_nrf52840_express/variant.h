@@ -37,9 +37,9 @@ extern "C"
 #endif // __cplusplus
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (64)
-#define NUM_DIGITAL_PINS     (64)
-#define NUM_ANALOG_INPUTS    (6)
+#define PINS_COUNT           (34)
+#define NUM_DIGITAL_PINS     (34)
+#define NUM_ANALOG_INPUTS    (6) // A6 is used for battery, A7 is analog reference
 #define NUM_ANALOG_OUTPUTS   (0)
 
 // LEDs
@@ -86,10 +86,10 @@ static const uint8_t A7  = PIN_A7 ;
 #define ADC_RESOLUTION    14
 
 // Other pins
-#define PIN_AREF           (PIN_A7)
-#define PIN_DFU            (7)
-#define PIN_NFC1           (2)
-#define PIN_NFC2           (51)
+#define PIN_AREF           PIN_A7
+#define PIN_VBAT           PIN_A6
+#define PIN_NFC1           (33)
+#define PIN_NFC2           (2)
 
 static const uint8_t AREF = PIN_AREF;
 
@@ -122,19 +122,19 @@ static const uint8_t SCK  = PIN_SPI_SCK ;
 #define PIN_WIRE_SDA         (22)
 #define PIN_WIRE_SCL         (23)
 
-/*
- * QSPI interface for external flash
- */
+// QSPI Pins
 #define PIN_QSPI_SCK         27
 #define PIN_QSPI_CS          28
-#define PIN_QSPI_DATA0       29
-#define PIN_QSPI_DATA1       30
-#define PIN_QSPI_DATA2       31
-#define PIN_QSPI_DATA3       32
+#define PIN_QSPI_IO0         29
+#define PIN_QSPI_IO1         30
+#define PIN_QSPI_IO2         31
+#define PIN_QSPI_IO3         32
 
 // On-board QSPI Flash
-// If EXTERNAL_FLASH_DEVICES is not defined, all supported devices will be used
 #define EXTERNAL_FLASH_DEVICES   GD25Q16C
+
+#define USB_MSC_BLOCK_SIZE    512
+#define USB_MSC_BLOCK_COUNT   ((2*1024*1024) / USB_MSC_BLOCK_SIZE)
 
 #ifdef __cplusplus
 }

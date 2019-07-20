@@ -110,15 +110,14 @@ void connect_callback(uint16_t conn_handle)
   {
     Serial.println("Found NONE");
 
-    // disconect since we couldn't find HRM service
-    Bluefruit.Central.disconnect(conn_handle);
+    // disconnect since we couldn't find HRM service
+    Bluefruit.disconnect(conn_handle);
 
     return;
   }
 
   // Once HRM service is found, we continue to discover its characteristic
   Serial.println("Found it");
-
   
   Serial.print("Discovering Measurement characteristic ... ");
   if ( !hrmc.discover() )
@@ -126,7 +125,7 @@ void connect_callback(uint16_t conn_handle)
     // Measurement chr is mandatory, if it is not found (valid), then disconnect
     Serial.println("not found !!!");  
     Serial.println("Measurement characteristic is mandatory but not found");
-    Bluefruit.Central.disconnect(conn_handle);
+    Bluefruit.disconnect(conn_handle);
     return;
   }
   Serial.println("Found it");

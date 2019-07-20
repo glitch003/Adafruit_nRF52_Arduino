@@ -47,11 +47,10 @@ void setup()
   Bluefruit.configPrphBandwidth(BANDWIDTH_MAX);
 
   Bluefruit.begin();
-  // Set max power. Accepted values are: -40, -30, -20, -16, -12, -8, -4, 0, 4
-  Bluefruit.setTxPower(4);
+  Bluefruit.setTxPower(4);    // Check bluefruit.h for supported values
   Bluefruit.setName("Bluefruit52");
-  Bluefruit.setConnectCallback(connect_callback);
-  Bluefruit.setDisconnectCallback(disconnect_callback);
+  Bluefruit.Periph.setConnectCallback(connect_callback);
+  Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
 
   // Configure CTS client
   bleCTime.begin();
@@ -95,8 +94,11 @@ void startAdv(void)
 
 void loop()
 {
-  // If service is not yet discovered
-  if ( !bleCTime.discovered() && !Bluefruit.connPaired() ) return;
+  // Skip if service is not yet discovered
+  if ( !bleCTime.discovered() ) return;
+
+  // Skip if service connection is not paired/secured
+  if ( !Bluefruit.connPaired( bleCTime.connHandle() ) ) return;
 
   // Get Time from iOS once per second
   // Note it is not advised to update this quickly
@@ -120,7 +122,7 @@ void connect_callback(uint16_t conn_handle)
     
     // iOS requires pairing to work, it makes sense to request security here as well
     Serial.print("Attempting to PAIR with the iOS device, please press PAIR on your phone ... ");
-    if ( Bluefruit.requestPairing() )
+    if ( Bluefruit.requestPairing(conn_handle) )
     {
       Serial.println("Done");
       Serial.println("Enabling Time Adjust Notify");

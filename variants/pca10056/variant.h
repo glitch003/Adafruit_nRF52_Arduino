@@ -37,8 +37,8 @@ extern "C"
 #endif // __cplusplus
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (64)
-#define NUM_DIGITAL_PINS     (64)
+#define PINS_COUNT           (48)
+#define NUM_DIGITAL_PINS     (48)
 #define NUM_ANALOG_INPUTS    (6)
 #define NUM_ANALOG_OUTPUTS   (0)
 
@@ -78,7 +78,6 @@ static const uint8_t A7  = PIN_A7 ;
 
 // Other pins
 #define PIN_AREF           (2)
-#define PIN_DFU            (11)
 #define PIN_NFC1           (9)
 #define PIN_NFC2           (10)
 
@@ -115,19 +114,19 @@ static const uint8_t SCK  = PIN_SPI_SCK ;
 #define PIN_WIRE_SDA         (26)
 #define PIN_WIRE_SCL         (27)
 
-/*
- * QSPI interface for external flash
- */
+// QSPI Pins
 #define PIN_QSPI_SCK         19
 #define PIN_QSPI_CS          17
-#define PIN_QSPI_DATA0       20
-#define PIN_QSPI_DATA1       21
-#define PIN_QSPI_DATA2       22
-#define PIN_QSPI_DATA3       23
+#define PIN_QSPI_IO0         20
+#define PIN_QSPI_IO1         21
+#define PIN_QSPI_IO2         22
+#define PIN_QSPI_IO3         23
 
 // On-board QSPI Flash
-// If EXTERNAL_FLASH_DEVICES is not defined, all supported devices will be used
 #define EXTERNAL_FLASH_DEVICES   MX25R6435F
+
+#define USB_MSC_BLOCK_SIZE    512
+#define USB_MSC_BLOCK_COUNT   ((8*1024*1024) / USB_MSC_BLOCK_SIZE)
 
 #ifdef __cplusplus
 }

@@ -27,11 +27,24 @@
 #include <bluefruit.h>
 
 /*------------- OLED and Buttons -------------*/
+#if defined ARDUINO_NRF52_FEATHER
+// Feather nRF52832
 #define BUTTON_A    31
 #define BUTTON_B    30
 #define BUTTON_C    27
 
-#define OLED_RESET 4
+#elif defined ARDUINO_NRF52840_FEATHER
+// Feather nRF52840
+#define BUTTON_A    9
+#define BUTTON_B    6
+#define BUTTON_C    5
+
+#else
+#error board not supported
+#endif
+
+
+#define OLED_RESET 4 // TODO remove ?
 Adafruit_SSD1306 oled(OLED_RESET);
 
 
@@ -83,11 +96,10 @@ void setup()
   //Bluefruit.configPrphBandwidth(BANDWIDTH_MAX);
 
   Bluefruit.begin();
-  // Set max power. Accepted values are: -40, -30, -20, -16, -12, -8, -4, 0, 4
-  Bluefruit.setTxPower(4);
+  Bluefruit.setTxPower(4);    // Check bluefruit.h for supported values
   Bluefruit.setName("Bluefruit52");
-  Bluefruit.setConnectCallback(connect_callback);
-  Bluefruit.setDisconnectCallback(disconnect_callback);
+  Bluefruit.Periph.setConnectCallback(connect_callback);
+  Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
 
   // Configure and Start Service
   bleancs.begin();
@@ -263,7 +275,7 @@ void connect_callback(uint16_t conn_handle)
 
     oled.display();
 
-    if ( Bluefruit.requestPairing() )
+    if ( Bluefruit.requestPairing(conn_handle) )
     {
       oled.println("OK");
 

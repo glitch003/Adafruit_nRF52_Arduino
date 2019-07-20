@@ -35,9 +35,13 @@
 /**************************************************************************/
 
 #include <Arduino.h>
-#include "Bluefruit_FileIO.h"
+#include <Adafruit_LittleFS.h>
+#include <InternalFileSystem.h>
+
 #include "bonding.h"
 #include "bluefruit.h"
+
+using namespace Adafruit_LittleFS_Namespace;
 
 #define BOND_DEBUG        0
 
@@ -100,7 +104,7 @@ static void bond_save_keys_dfr (uint8_t role, uint16_t conn_hdl, bond_keys_t* bk
   // delete if file already exists
   if ( InternalFS.exists(filename) ) InternalFS.remove(filename);
 
-  File file(filename, FILE_WRITE, InternalFS);
+  File file(filename, FILE_O_WRITE, InternalFS);
   VERIFY(file,);
 
   //------------- save keys -------------//
@@ -108,7 +112,7 @@ static void bond_save_keys_dfr (uint8_t role, uint16_t conn_hdl, bond_keys_t* bk
 
   //------------- save device name -------------//
   char devname[CFG_MAX_DEVNAME_LEN] = { 0 };
-  Bluefruit.Gap.getPeerName(conn_hdl, devname, CFG_MAX_DEVNAME_LEN);
+  Bluefruit.Connection(conn_hdl)->getPeerName(devname, CFG_MAX_DEVNAME_LEN);
 
   // If couldn't get devname then use peer mac address
   if ( !devname[0] )
@@ -126,13 +130,8 @@ static void bond_save_keys_dfr (uint8_t role, uint16_t conn_hdl, bond_keys_t* bk
 
 bool bond_save_keys (uint8_t role, uint16_t conn_hdl, bond_keys_t* bkeys)
 {
-  uint8_t* buf = (uint8_t*) rtos_malloc( sizeof(bond_keys_t) );
-  VERIFY(buf);
-
-  memcpy(buf, bkeys, sizeof(bond_keys_t));
-
   // queue to execute in Ada Callback thread
-  ada_callback(buf, bond_save_keys_dfr, role, conn_hdl, buf);
+  ada_callback(bkeys, sizeof(bond_keys_t), bond_save_keys_dfr, role, conn_hdl, bkeys);
 
   return true;
 }
@@ -142,7 +141,7 @@ bool bond_load_keys(uint8_t role, uint16_t ediv, bond_keys_t* bkeys)
   char filename[BOND_FNAME_LEN];
   get_fname(filename, role, ediv);
 
-  File file(filename, FILE_READ, InternalFS);
+  File file(filename, FILE_O_READ, InternalFS);
   VERIFY(file);
 
   int keylen = file.read();
@@ -172,7 +171,7 @@ static void bond_save_cccd_dfr (uint8_t role, uint16_t conn_hdl, uint16_t ediv)
   char filename[BOND_FNAME_LEN];
   get_fname(filename, role, ediv);
 
-  File file(filename, FILE_WRITE, InternalFS);
+  File file(filename, FILE_O_WRITE, InternalFS);
   VERIFY(file,);
 
   file.seek(0); // write mode start at the end, seek to beginning
@@ -191,7 +190,7 @@ bool bond_save_cccd (uint8_t role, uint16_t conn_hdl, uint16_t ediv)
   VERIFY(ediv != 0xFFFF);
 
   // queue to execute in Ada Callback thread
-  ada_callback(NULL, bond_save_cccd_dfr, role, conn_hdl, ediv);
+  ada_callback(NULL, 0, bond_save_cccd_dfr, role, conn_hdl, ediv);
 
   return true;
 }
@@ -205,7 +204,7 @@ bool bond_load_cccd(uint8_t role, uint16_t conn_hdl, uint16_t ediv)
     char filename[BOND_FNAME_LEN];
     get_fname(filename, role, ediv);
 
-    File file(filename, FILE_READ, InternalFS);
+    File file(filename, FILE_O_READ, InternalFS);
 
     if ( file )
     {
@@ -242,10 +241,10 @@ void bond_print_list(uint8_t role)
 {
   char const * dpath = (role == BLE_GAP_ROLE_PERIPH ? BOND_DIR_PRPH : BOND_DIR_CNTR);
 
-  File dir(dpath, FILE_READ, InternalFS);
+  File dir(dpath, FILE_O_READ, InternalFS);
   File file(InternalFS);
 
-  while ( (file = dir.openNextFile(FILE_READ)) )
+  while ( (file = dir.openNextFile(FILE_O_READ)) )
   {
     if ( !file.isDirectory() && bdata_skip_field(&file) ) // skip key
     {
@@ -255,7 +254,7 @@ void bond_print_list(uint8_t role)
         char devname[len];
         file.read(devname, len);
 
-        printf("  %s : %s (%d bytes)\n", file.name(), devname, file.size());
+        printf("  %s : %s (%lu bytes)\n", file.name(), devname, file.size());
       }
     }
 
@@ -269,14 +268,14 @@ void bond_print_list(uint8_t role)
 }
 
 
-bool bond_find_cntr(ble_gap_addr_t* addr, bond_keys_t* bkeys)
+bool bond_find_cntr(ble_gap_addr_t const * addr, bond_keys_t* bkeys)
 {
   bool found = false;
 
-  File dir(BOND_DIR_CNTR, FILE_READ, InternalFS);
+  File dir(BOND_DIR_CNTR, FILE_O_READ, InternalFS);
   File file(InternalFS);
 
-  while ( (file = dir.openNextFile(FILE_READ)) )
+  while ( (file = dir.openNextFile(FILE_O_READ)) )
   {
     // Read bond data of each stored file
     int keylen = file.read();

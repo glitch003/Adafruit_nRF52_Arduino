@@ -22,9 +22,6 @@
 #include "wiring_constants.h"
 #include "wiring_digital.h"
 #include "nrf.h"
-#include "usb.h"
-
-#include "flash/flash_qspi.h"
 
 const uint32_t g_ADigitalPinMap[] =
 {
@@ -36,9 +33,7 @@ const uint32_t g_ADigitalPinMap[] =
 
   // P1
   32, 33, 34, 35, 36, 37, 38, 39,
-  40, 41, 42, 43, 44, 45, 46, 47,
-  48, 49, 50, 51, 52, 53, 54, 55,
-  56, 57, 58, 59, 60, 61, 62, 63
+  40, 41, 42, 43, 44, 45, 46, 47
 };
 
 
@@ -49,12 +44,6 @@ void initVariant()
   ledOff(PIN_LED1);
 
   pinMode(PIN_LED2, OUTPUT);
-  ledOff(PIN_LED2);
-
-  // Init External Flash
-  flash_qspi_init();
-
-  // USB init
-  usb_init();
+  ledOff(PIN_LED2);;
 }
 
