@@ -166,6 +166,9 @@ class AdafruitBluefruit
 
     void     clearBonds        (void);
 
+    bool     setPhy             (int8_t phy);
+    int8_t   getPhy             (void);
+
     /*------------------------------------------------------------------*/
     /* GAP, Connections and Bonding
      *------------------------------------------------------------------*/
@@ -230,6 +233,8 @@ class AdafruitBluefruit
 
     TimerHandle_t _led_blink_th;
     bool _led_conn;
+
+    int8_t _phy;
 
     uint16_t _conn_hdl;
 
