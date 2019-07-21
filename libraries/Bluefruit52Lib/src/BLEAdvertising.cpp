@@ -428,7 +428,7 @@ bool BLEAdvertising::_start(uint16_t interval, uint16_t timeout)
   // LOG_LV1("GAP", "updating phy maybe");
   // VERIFY_STATUS( sd_ble_gap_phy_update(&_hdl, &phys), false );
 
-  LOG_LV1("GAP", "setting adv params");
+  LOG_LV1("ADV", "setting adv params");
   VERIFY_STATUS( sd_ble_gap_adv_set_configure(&_hdl, &gap_adv, &adv_para), false );
   // VERIFY_STATUS( sd_ble_gap_adv_set_configure(&_hdl, &m_adv_extended_data, &adv_para), false );
   VERIFY_STATUS( sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, _hdl, Bluefruit.getTxPower() ), false );

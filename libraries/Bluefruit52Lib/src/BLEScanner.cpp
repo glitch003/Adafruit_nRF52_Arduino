@@ -39,7 +39,7 @@
 BLEScanner::BLEScanner(void)
 {
   _report_data.p_data  = _scan_data;
-  _report_data.len     = BLE_GAP_SCAN_BUFFER_MAX;
+  _report_data.len     = BLE_GAP_SCAN_BUFFER_EXTENDED_MIN;
 
   _conn_mask            = 0;
   _runnning            = false;
@@ -56,7 +56,7 @@ BLEScanner::BLEScanner(void)
 
   _param  = ((ble_gap_scan_params_t) {
     // TODO Extended Adv on secondary channels
-    .extended               = 0,
+    .extended               = 1,
     .report_incomplete_evts = 0,
 
     .active         = 0,
@@ -73,6 +73,35 @@ BLEScanner::BLEScanner(void)
 void BLEScanner::useActiveScan(bool enable)
 {
   _param.active = enable;
+}
+
+// added by Chris
+bool BLEScanner::setPhy(int8_t phy)
+{
+#if defined(NRF52832_XXAA)
+int8_t const accepted[] = { BLE_GAP_PHY_AUTO, BLE_GAP_PHY_1MBPS, BLE_GAP_PHY_2MBPS };
+#elif defined( NRF52840_XXAA)
+int8_t const accepted[] = { BLE_GAP_PHY_AUTO, BLE_GAP_PHY_1MBPS, BLE_GAP_PHY_2MBPS,
+                            BLE_GAP_PHY_CODED };
+#endif
+
+  // Check if phy is valid value
+  uint32_t i;
+  for (i=0; i<sizeof(accepted); i++)
+  {
+    if (accepted[i] == phy) break;
+  }
+  VERIFY(i < sizeof(accepted));
+
+  _param.scan_phys = phy;
+
+  return true;
+}
+
+// added by Chris
+int8_t BLEScanner::getPhy(void)
+{
+  return _param.scan_phys;
 }
 
 void BLEScanner::setInterval(uint16_t interval, uint16_t window)
@@ -115,7 +144,9 @@ ble_gap_scan_params_t* BLEScanner::getParams(void)
 bool BLEScanner::start(uint16_t timeout)
 {
   _report_data.p_data  = _scan_data;
-  _report_data.len     = BLE_GAP_SCAN_BUFFER_MAX;
+  // changed from _report_data.len = BLE_GAP_SCAN_BUFFER_MAX
+  // added by chris
+  _report_data.len     = BLE_GAP_SCAN_BUFFER_EXTENDED_MIN;
 
   _param.timeout = timeout;
 

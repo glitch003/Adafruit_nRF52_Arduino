@@ -58,6 +58,10 @@ public:
   void setIntervalMS(uint16_t interval, uint16_t window);
   void restartOnDisconnect(bool enable);
 
+  // Added by Chris
+  bool setPhy(int8_t phy);
+  int8_t getPhy (void);
+
   void filterRssi(int8_t min_rssi);
   void filterMSD(uint16_t manuf_id);
 
@@ -97,7 +101,9 @@ public:
   void _eventHandler(ble_evt_t* evt);
 
 private:
-  uint8_t    _scan_data[BLE_GAP_SCAN_BUFFER_MAX];
+  // changed from   uint8_t    _scan_data[BLE_GAP_SCAN_BUFFER_MAX];
+  // addec by chris
+  uint8_t    _scan_data[BLE_GAP_SCAN_BUFFER_EXTENDED_MIN];
   ble_data_t _report_data;
 
   uint32_t   _conn_mask;
