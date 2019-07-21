@@ -140,6 +140,10 @@ public:
   bool start(uint16_t timeout = 0);
   bool stop (void);
 
+  // Added by Chris
+  bool setPhy(int8_t phy);
+  int8_t getPhy (void);
+
   /*------------------------------------------------------------------*/
   /* INTERNAL USAGE ONLY
    * Although declare as public, it is meant to be invoked by internal
@@ -165,6 +169,9 @@ private:
 
   stop_callback_t _stop_cb;
   slow_callback_t _slow_cb;
+
+  // Added by Chris
+  int8_t _phy;
 
   // Internal function
   bool _start(uint16_t interval, uint16_t timeout);

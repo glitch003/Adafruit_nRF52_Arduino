@@ -615,7 +615,10 @@ int8_t const accepted[] = { BLE_GAP_PHY_AUTO, BLE_GAP_PHY_1MBPS, BLE_GAP_PHY_2MB
   phys.rx_phys = phy;
   if ( _conn_hdl != BLE_CONN_HANDLE_INVALID )
   {
+    LOG_LV1("GAP", "Catsfish: Trying to update PHY to coded.  Yay.");
     VERIFY_STATUS( sd_ble_gap_phy_update(_conn_hdl, &phys), false );
+  } else {
+    LOG_LV1("GAP", "Catsfis: Not trying to update to coded.  Boo.");
   }
   _phy = phy;
 

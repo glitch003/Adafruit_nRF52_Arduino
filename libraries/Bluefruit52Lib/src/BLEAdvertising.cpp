@@ -251,7 +251,9 @@ void BLEAdvertisingData::clearData(void)
 BLEAdvertising::BLEAdvertising(void)
 {
   _hdl                 = BLE_GAP_ADV_SET_HANDLE_NOT_SET;
-  _type                = BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED;
+  // _type                = BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED;
+  _type                = BLE_GAP_ADV_TYPE_EXTENDED_NONCONNECTABLE_SCANNABLE_UNDIRECTED;
+
   _start_if_disconnect = true;
   _runnning            = false;
 
@@ -265,6 +267,9 @@ BLEAdvertising::BLEAdvertising(void)
   _stop_timeout        = _left_timeout = 0;
   _stop_cb             = NULL;
   _slow_cb             = NULL;
+
+  // Added by Chris
+  _phy                 = NULL;
 }
 
 void BLEAdvertising::setFastTimeout(uint16_t sec)
@@ -275,6 +280,33 @@ void BLEAdvertising::setFastTimeout(uint16_t sec)
 void BLEAdvertising::setType(uint8_t adv_type)
 {
   _type = adv_type;
+}
+
+bool BLEAdvertising::setPhy(int8_t phy)
+{
+#if defined(NRF52832_XXAA)
+int8_t const accepted[] = { BLE_GAP_PHY_AUTO, BLE_GAP_PHY_1MBPS, BLE_GAP_PHY_2MBPS };
+#elif defined( NRF52840_XXAA)
+int8_t const accepted[] = { BLE_GAP_PHY_AUTO, BLE_GAP_PHY_1MBPS, BLE_GAP_PHY_2MBPS,
+                            BLE_GAP_PHY_CODED };
+#endif
+
+  // Check if phy is valid value
+  uint32_t i;
+  for (i=0; i<sizeof(accepted); i++)
+  {
+    if (accepted[i] == phy) break;
+  }
+  VERIFY(i < sizeof(accepted));
+
+  _phy = phy;
+
+  return true;
+}
+
+int8_t BLEAdvertising::getPhy(void)
+{
+  return _phy;
 }
 
 /**
@@ -355,13 +387,50 @@ bool BLEAdvertising::_start(uint16_t interval, uint16_t timeout)
       //.primary_phy, .secondary_phy, .set_id, .scan_req_notification
   };
 
+  // added by Chris.
+  if (_phy != NULL) {
+    adv_para.primary_phy = _phy;
+    adv_para.secondary_phy = _phy;
+  }
+
   // gap_adv long-live is required by SD v6
   static ble_gap_adv_data_t gap_adv =
   {
       .adv_data      = { .p_data = _data, .len = _count },
       .scan_rsp_data = { .p_data = Bluefruit.ScanResponse.getData(), .len = Bluefruit.ScanResponse.count() }
   };
+  // static uint8_t m_adv_extended_rsdata[BLE_GAP_SCAN_BUFFER_EXTENDED_MIN];            /**< Buffer for storing an encoded advertising set. */
+
+  // *** from internet
+  // static ble_gap_adv_data_t m_adv_extended_data =
+  //     {
+  // .adv_data =
+  //     {
+  //         .p_data = NULL,
+  //         .len    = 0
+  //     },
+  //         .scan_rsp_data =
+  //             {
+  //                 .p_data = Bluefruit.ScanResponse.getData(),
+  //                 .len = Bluefruit.ScanResponse.count(), //BLE_GAP_ADV_SET_DATA_SIZE_MAX
+
+  //             }};
+
+  // ble_advdata_t const adv_data =
+  // {
+  //     .name_type          = BLE_ADVDATA_FULL_NAME,
+  //     //.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE,
+  //     .include_appearance = false
+  // };
+
+  // VERIFY_STATUS( ble_advdata_encode(&adv_data, m_adv_extended_data.scan_rsp_data.p_data, &m_adv_extended_data.scan_rsp_data.len), false);
+
+  // LOG_LV1("GAP", "updating phy maybe");
+  // VERIFY_STATUS( sd_ble_gap_phy_update(&_hdl, &phys), false );
+
+  LOG_LV1("GAP", "setting adv params");
   VERIFY_STATUS( sd_ble_gap_adv_set_configure(&_hdl, &gap_adv, &adv_para), false );
+  // VERIFY_STATUS( sd_ble_gap_adv_set_configure(&_hdl, &m_adv_extended_data, &adv_para), false );
   VERIFY_STATUS( sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, _hdl, Bluefruit.getTxPower() ), false );
   VERIFY_STATUS( sd_ble_gap_adv_start(_hdl, CONN_CFG_PERIPHERAL), false );
 
